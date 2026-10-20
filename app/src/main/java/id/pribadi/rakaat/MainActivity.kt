@@ -22,10 +22,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -91,6 +93,10 @@ fun Home(activity: ComponentActivity, prefs: Prefs, onStart: (Plan) -> Unit) {
     var tasbih by remember { mutableStateOf(prefs.tasbih) }
     var flash by remember { mutableStateOf(prefs.flash) }
     var debug by remember { mutableStateOf(prefs.debug) }
+    var bright by remember { mutableStateOf(prefs.brightness) }
+    var numLight by remember { mutableStateOf(prefs.numLight) }
+    var numSize by remember { mutableStateOf(prefs.numSize) }
+    var arabic by remember { mutableStateOf(prefs.arabic) }
     var pending by remember { mutableStateOf<Plan?>(null) }
 
     val camLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
@@ -147,6 +153,45 @@ fun Home(activity: ComponentActivity, prefs: Prefs, onStart: (Plan) -> Unit) {
                 fontSize = 13.sp, color = Color.Gray)
         }
 
+        Text("Tampilan layar saat sholat", fontWeight = FontWeight.Medium)
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height((numSize * 1.25f).dp)
+                .background(Color.Black, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                formatRakaat(3, arabic),
+                color = Color(numLight, numLight, numLight),
+                fontSize = numSize.sp,
+                fontWeight = FontWeight.Light
+            )
+        }
+        Text("Kecerahan layar: ${(bright * 100).toInt()}% (berlaku saat sesi dimulai)", fontSize = 14.sp)
+        Slider(
+            value = bright,
+            onValueChange = { bright = it; prefs.brightness = it },
+            valueRange = 0.05f..1f
+        )
+        Text("Terang angka: ${(numLight * 100).toInt()}%", fontSize = 14.sp)
+        Slider(
+            value = numLight,
+            onValueChange = { numLight = it; prefs.numLight = it },
+            valueRange = 0.3f..1f
+        )
+        Text("Ukuran angka: ${numSize.toInt()}", fontSize = 14.sp)
+        Slider(
+            value = numSize,
+            onValueChange = { numSize = it; prefs.numSize = it },
+            valueRange = 80f..280f
+        )
+        Text("Jenis angka", fontSize = 14.sp)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = !arabic, onClick = { arabic = false; prefs.arabic = false }, label = { Text("Latin (123)") })
+            FilterChip(selected = arabic, onClick = { arabic = true; prefs.arabic = true }, label = { Text("Arab (\u0661\u0662\u0663)") })
+        }
+
         Text("Umpan balik saat sholat", fontWeight = FontWeight.Medium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = vib, onClick = { vib = !vib; prefs.vib = vib }, label = { Text("Getar") })
@@ -173,12 +218,15 @@ fun Home(activity: ComponentActivity, prefs: Prefs, onStart: (Plan) -> Unit) {
 @Composable
 fun SessionScreen(activity: ComponentActivity, plan: Plan, prefs: Prefs, onEnd: () -> Unit) {
     val runner = remember { SessionRunner(activity, plan.target, prefs) }
+    val l = prefs.numLight
+    val sec = Color(l * 0.75f, l * 0.75f, l * 0.75f)
+    val dim = Color(l * 0.5f, l * 0.5f, l * 0.5f)
 
     DisposableEffect(Unit) {
         val w = activity.window
         w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val lp = w.attributes
-        lp.screenBrightness = 0.15f
+        lp.screenBrightness = prefs.brightness.coerceIn(0.02f, 1f)
         w.attributes = lp
         runner.start()
         onDispose {
@@ -201,22 +249,22 @@ fun SessionScreen(activity: ComponentActivity, plan: Plan, prefs: Prefs, onEnd: 
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
             Text(
-                runner.count.toString(),
-                color = Color(0xFFD0D0D0),
-                fontSize = 140.sp,
+                formatRakaat(runner.count, prefs.arabic),
+                color = Color(l, l, l),
+                fontSize = prefs.numSize.sp,
                 fontWeight = FontWeight.Light
             )
             plan.target?.let {
-                Text("${plan.title}, $it rakaat", color = Color(0xFF9A9A9A), fontSize = 18.sp)
+                Text("${plan.title}, ${formatRakaat(it, prefs.arabic)} rakaat", color = sec, fontSize = 18.sp)
             }
             if (plan.target == null) {
-                Text(plan.title, color = Color(0xFF9A9A9A), fontSize = 18.sp)
+                Text(plan.title, color = sec, fontSize = 18.sp)
             }
             if (runner.message.isNotEmpty()) {
                 Spacer(Modifier.height(16.dp))
                 Text(
                     runner.message,
-                    color = Color(0xFF9A9A9A),
+                    color = sec,
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center
                 )
@@ -225,14 +273,14 @@ fun SessionScreen(activity: ComponentActivity, plan: Plan, prefs: Prefs, onEnd: 
                 Spacer(Modifier.height(24.dp))
                 Text(
                     runner.debug,
-                    color = Color(0xFFA0A0A0),
+                    color = sec,
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     textAlign = TextAlign.Center
                 )
             }
             Spacer(Modifier.height(24.dp))
-            Text("Ketuk dua kali untuk mengakhiri", color = Color(0xFF707070), fontSize = 12.sp)
+            Text("Ketuk dua kali untuk mengakhiri", color = dim, fontSize = 12.sp)
         }
     }
 }

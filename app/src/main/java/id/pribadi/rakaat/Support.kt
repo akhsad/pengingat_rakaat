@@ -23,6 +23,11 @@ import java.util.Locale
 
 data class Plan(val title: String, val target: Int?)
 
+/** Menulis angka dengan digit Latin (123) atau Arab (١٢٣). */
+fun formatRakaat(n: Int, arabic: Boolean): String =
+    if (!arabic) n.toString()
+    else n.toString().map { '\u0660' + (it - '0') }.joinToString("")
+
 class Prefs(ctx: Context) {
     private val sp = ctx.getSharedPreferences("rakaat", Context.MODE_PRIVATE)
 
@@ -38,6 +43,18 @@ class Prefs(ctx: Context) {
     var debug: Boolean
         get() = sp.getBoolean("debug", false)
         set(v) { sp.edit().putBoolean("debug", v).apply() }
+    var brightness: Float
+        get() = sp.getFloat("brightness", 0.4f)
+        set(v) { sp.edit().putFloat("brightness", v).apply() }
+    var numLight: Float
+        get() = sp.getFloat("numLight", 0.85f)
+        set(v) { sp.edit().putFloat("numLight", v).apply() }
+    var numSize: Float
+        get() = sp.getFloat("numSize", 160f)
+        set(v) { sp.edit().putFloat("numSize", v).apply() }
+    var arabic: Boolean
+        get() = sp.getBoolean("arabic", false)
+        set(v) { sp.edit().putBoolean("arabic", v).apply() }
 
     fun saveCoords(lat: Double, lon: Double) {
         sp.edit().putString("lat", lat.toString()).putString("lon", lon.toString()).apply()
