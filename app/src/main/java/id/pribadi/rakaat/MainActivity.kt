@@ -178,7 +178,7 @@ fun SessionScreen(activity: ComponentActivity, plan: Plan, prefs: Prefs, onEnd: 
         val w = activity.window
         w.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val lp = w.attributes
-        lp.screenBrightness = 0.02f
+        lp.screenBrightness = 0.15f
         w.attributes = lp
         runner.start()
         onDispose {
@@ -202,21 +202,21 @@ fun SessionScreen(activity: ComponentActivity, plan: Plan, prefs: Prefs, onEnd: 
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
             Text(
                 runner.count.toString(),
-                color = Color(0xFF4A4A4A),
+                color = Color(0xFFD0D0D0),
                 fontSize = 140.sp,
                 fontWeight = FontWeight.Light
             )
             plan.target?.let {
-                Text("${plan.title}, $it rakaat", color = Color(0xFF3A3A3A), fontSize = 18.sp)
+                Text("${plan.title}, $it rakaat", color = Color(0xFF9A9A9A), fontSize = 18.sp)
             }
             if (plan.target == null) {
-                Text(plan.title, color = Color(0xFF3A3A3A), fontSize = 18.sp)
+                Text(plan.title, color = Color(0xFF9A9A9A), fontSize = 18.sp)
             }
             if (runner.message.isNotEmpty()) {
                 Spacer(Modifier.height(16.dp))
                 Text(
                     runner.message,
-                    color = Color(0xFF3A3A3A),
+                    color = Color(0xFF9A9A9A),
                     fontSize = 15.sp,
                     textAlign = TextAlign.Center
                 )
@@ -225,14 +225,14 @@ fun SessionScreen(activity: ComponentActivity, plan: Plan, prefs: Prefs, onEnd: 
                 Spacer(Modifier.height(24.dp))
                 Text(
                     runner.debug,
-                    color = Color(0xFF5A5A5A),
+                    color = Color(0xFFA0A0A0),
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     textAlign = TextAlign.Center
                 )
             }
             Spacer(Modifier.height(24.dp))
-            Text("Ketuk dua kali untuk mengakhiri", color = Color(0xFF2E2E2E), fontSize = 12.sp)
+            Text("Ketuk dua kali untuk mengakhiri", color = Color(0xFF707070), fontSize = 12.sp)
         }
     }
 }
